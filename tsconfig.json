@@ -1,0 +1,36 @@
+{
+	"compilerOptions": {
+		"types": ["bun-types"], // add Bun type definitions
+
+		"lib": ["ESNext", "DOM", "DOM.Iterable"],
+		"module": "ESNext",
+		"target": "ESNext",
+
+		"moduleResolution": "bundler",
+		"noEmit": true,
+		"allowImportingTsExtensions": true,
+		"moduleDetection": "force",
+
+		"jsx": "react-jsx", // support JSX
+		"allowJs": true, // allow importing `.js` from `.ts`
+		"esModuleInterop": true, // allow default imports for CommonJS modules
+
+		"outDir": "./dist",
+		"rootDir": "./src",
+		"alwaysStrict": true,
+		// Don't output .d.ts or source maps
+		"declaration": false,
+		"sourceMap": false,
+		// remove unused imports
+		"importsNotUsedAsValues": "remove",
+		"checkJs": true,
+		"forceConsistentCasingInFileNames": true,
+		"noImplicitAny": true,
+		// This will be handled by the minifier
+		"removeComments": false,
+		"resolveJsonModule": false,
+		"skipLibCheck": true,
+		"strict": true
+	},
+	"exclude": ["dist", "node_modules"]
+}
