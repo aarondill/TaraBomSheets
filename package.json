@@ -8,7 +8,9 @@
 	"type": "module",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
-	"files": ["dist"],
+	"files": [
+		"dist"
+	],
 	"scripts": {
 		"build": "bun ./build.ts",
 		"lint": "bun run lint:sort && bun run lint:prettier && bun run lint:eslint",
@@ -21,17 +23,24 @@
 		"test:typecheck": "tsc -p ./tsconfig.eslint.json"
 	},
 	"devDependencies": {
-		"@types/node": "^20.10.6",
-		"@typescript-eslint/eslint-plugin": "^6.17.0",
-		"@typescript-eslint/parser": "^6.17.0",
-		"bun-types": "^1.0.21",
-		"eslint": "^8.56.0",
-		"eslint-plugin-compat": "^4.2.0",
-		"prettier": "^3.1.1",
-		"release-it": "^17.0.1",
-		"sort-package-json": "^2.6.0",
-		"typescript": "^5.3.3"
+		"@types/node": "^22.15.30",
+		"@typescript-eslint/eslint-plugin": "^8.34.0",
+		"@typescript-eslint/parser": "^8.34.0",
+		"bun-types": "^1.2.15",
+		"eslint": "^9.28.0",
+		"eslint-config-prettier": "^10.1.5",
+		"eslint-plugin-compat": "^6.0.2",
+		"prettier": "^3.5.3",
+		"release-it": "^19.0.3",
+		"sort-package-json": "^3.2.1",
+		"typescript": "^5.8.3",
+		"typescript-eslint": "^8.34.0"
 	},
-	"publishConfig": { "access": "private" },
-	"contributers": ["Aaron Dill"]
+	"packageManager": "pnpm@10.11.1+sha512.e519b9f7639869dc8d5c3c5dfef73b3f091094b0a006d7317353c72b124e80e1afd429732e28705ad6bfa1ee879c1fce46c128ccebd3192101f43dd67c667912",
+	"publishConfig": {
+		"access": "private"
+	},
+	"contributers": [
+		"Aaron Dill"
+	]
 }
