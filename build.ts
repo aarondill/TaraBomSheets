@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-// eslint-disable-next-line @typescript-eslint/naming-convention
+ 
 import Bun from "bun";
 import fs from "node:fs/promises";
 import path from "node:path";

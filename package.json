@@ -8,16 +8,13 @@
 	"type": "module",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
-	"files": [
-		"dist"
-	],
+	"files": ["dist"],
 	"scripts": {
 		"build": "bun ./build.ts",
 		"lint": "bun run lint:sort && bun run lint:prettier && bun run lint:eslint",
 		"lint:eslint": "eslint . --fix --ext .js,.ts,.mjs,.mts,.cjs,.cts,.tsx,.jsx",
 		"lint:prettier": "prettier -w .",
 		"lint:sort": "sort-package-json",
-		"release": "release-it",
 		"test": "bun run test:typecheck && bun run lint && bun run test:bun",
 		"test:bun": "bun test tests",
 		"test:typecheck": "tsc -p ./tsconfig.eslint.json"
@@ -31,7 +28,6 @@
 		"eslint-config-prettier": "^10.1.5",
 		"eslint-plugin-compat": "^6.0.2",
 		"prettier": "^3.5.3",
-		"release-it": "^19.0.3",
 		"sort-package-json": "^3.2.1",
 		"typescript": "^5.8.3",
 		"typescript-eslint": "^8.34.0"
@@ -40,7 +36,5 @@
 	"publishConfig": {
 		"access": "private"
 	},
-	"contributers": [
-		"Aaron Dill"
-	]
+	"contributers": ["Aaron Dill"]
 }
