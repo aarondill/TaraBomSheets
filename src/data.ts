@@ -19,7 +19,7 @@ export interface Data {
 		// "ITEM GROUP" + " ASSY" or "ITEM GROUP" + " MFG"
 		"Item Groups - Type": string; // search for all that match this
 		ItemCode: string;
-		Quantity: string | ""; // if it has a quantity, it's a Resource, otherwise it's a RouteStage
+		Quantity: string; // if it has a quantity, it's a Resource, otherwise it's a RouteStage
 	}[];
 	ittItems: {
 		ParentKey: string;

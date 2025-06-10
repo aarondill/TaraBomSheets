@@ -7,7 +7,7 @@ interface LineItem {
 	// treecode
 	ParentKey: string;
 	ItemCode: string;
-	Quantity: string | ""; // RouteStages don't have this
+	Quantity: string; // RouteStages don't have this
 	Warehouse: "040";
 	ItemType: "Route" | "pit_Resource" | "pit_Item";
 	// LineNum counts from 1

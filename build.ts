@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
- 
+
 import Bun from "bun";
 import fs from "node:fs/promises";
 import path from "node:path";
