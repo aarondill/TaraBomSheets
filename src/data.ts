@@ -2,7 +2,9 @@ import { stringify } from "csv";
 import { parse } from "csv/sync";
 import { PathLike } from "fs";
 import fs from "fs/promises";
+import { once } from "node:events";
 import { createWriteStream } from "node:fs";
+import { Writable } from "node:stream";
 import { Result } from ".";
 
 export type SourceItem = Data["allItems"][number];
@@ -49,23 +51,29 @@ export async function getData(): Promise<Data> {
 	return { allItems, routeStagesAndResources, ittItems };
 }
 
+async function write(stream: Writable, data: any) {
+	if (!stream.write(data)) return once(stream, "drain");
+}
+
 export async function outputResults(result: Result[]): Promise<void> {
 	const writableStream = createWriteStream("output.csv");
-	const stringifier = stringify({ header: true }).pipe(writableStream);
-	return new Promise((resolve, reject) => {
+	const stringifier = stringify({ header: true });
+	stringifier.pipe(writableStream);
+	return new Promise(async (resolve, reject) => {
 		writableStream.on("finish", resolve);
 		writableStream.on("error", reject);
 		for (const lineItem of result) {
 			const [firstStage, firstResource, ...restStages] = lineItem.stages;
 			let lineNum = 1;
-			stringifier.write({ ...firstStage, lineNum: lineNum++ });
-			stringifier.write({ ...firstResource, lineNum: lineNum++ });
+			await write(stringifier, { ...firstStage, lineNum: lineNum++ });
+			await write(stringifier, { ...firstResource, lineNum: lineNum++ });
 			for (const item of lineItem.items) {
-				stringifier.write({ ...item, lineNum: lineNum++ });
+				await write(stringifier, { ...item, lineNum: lineNum++ });
 			}
 			for (const stage of restStages) {
-				stringifier.write({ ...stage, lineNum: lineNum++ });
+				await write(stringifier, { ...stage, lineNum: lineNum++ });
 			}
 		}
+		stringifier.end();
 	});
 }
