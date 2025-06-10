@@ -12,7 +12,7 @@ async function main() {
 
 	const res = await Bun.build({
 		entrypoints: ["./src/index.ts"],
-		target: "browser",
+		target: "node",
 		splitting: false,
 		minify: true,
 		root: "./src/",
