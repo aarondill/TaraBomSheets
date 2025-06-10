@@ -71,7 +71,6 @@ function getResourcesAndStages(
 		item => item["Item Groups - Type"] === key
 	);
 	if (resources.length === 0) throw new Error("No resources found: " + key);
-	if (resources.length > 1) throw new Error("Too many resources found: " + key);
 	return resources.map(resource => {
 		const Quantity = resource.Quantity,
 			ParentKey = itemInfo["PN#"],
