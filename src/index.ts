@@ -50,6 +50,8 @@ interface RouteStage extends LineItem {
 function probablyIsAssembly(itemInfo: SourceItem, subitems: Item[]): boolean {
 	// if desc contains "ASSY"
 	if (itemInfo.DESCRIPTION.match(/\bASSY\b/) != null) return true;
+	// if desc contains "FRACMASTER"
+	if (itemInfo.DESCRIPTION.match(/\bFRACMASTER\b/) != null) return true;
 	// if itemcode starts with "AP"
 	if (subitems.some(item => item.ItemCode.startsWith("AP"))) return true;
 	return false;
@@ -84,6 +86,10 @@ function getResourcesAndStages(
 		item => item["Item Groups - Type"] === key
 	);
 	if (resources.length === 0) throw new Error("No resources found: " + key);
+	if (resources.length === 1) {
+		console.warn("Only one resource found for " + key + " ignoring resources");
+		return [];
+	}
 	return resources.map(resource => {
 		const Quantity = resource.Quantity,
 			ParentKey = itemInfo["PN#"],
