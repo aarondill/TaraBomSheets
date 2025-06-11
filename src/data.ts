@@ -40,6 +40,7 @@ async function readCSV(
 	return parse(content, {
 		columns: true,
 		skip_empty_lines: true,
+		bom: true,
 	}) as Record<string, string>[];
 }
 /**
@@ -74,6 +75,7 @@ export async function getData(): Promise<Data> {
 		>,
 		readCSV("itt-items.csv") as Promise<Data["ittItems"]>,
 	]);
+	console.log(routeStagesAndResources);
 	return { allItems, routeStagesAndResources, ittItems };
 }
 
