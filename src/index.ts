@@ -87,7 +87,9 @@ function getResourcesAndStages(
 	);
 	if (resources.length === 0) throw new Error("No resources found: " + key);
 	if (resources.length === 1) {
-		console.warn("Only one resource found for " + key + " ignoring resources");
+		console.warn(
+			`Only one resource found for ${key} ignoring resources: PartNumber: ${itemInfo["PN#"]}`
+		);
 		return [];
 	}
 	return resources.map(resource => {
@@ -107,6 +109,7 @@ const IGNORED_GROUPS: string[] = [
 	"OUTSIDE PROCESSES",
 	"QC-TOOLING / GAUGES",
 	"R & D",
+	"CSS-OBSO PARTS",
 ];
 function run(source: SourceItem): Result | null {
 	if (IGNORED_GROUPS.includes(source["ITEM GROUP"])) return null;
