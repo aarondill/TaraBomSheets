@@ -83,17 +83,20 @@ export async function outputResults(result: Result[]): Promise<void> {
 	await fs.mkdir(path.dirname(file), { recursive: true });
 	return writeCsv(file, async write => {
 		for (const lineItem of result) {
+			const warnings = lineItem.warnings.join("; ");
 			const [firstStage, firstResource, ...restStages] = lineItem.stages;
 			let lineNum = 1;
-			if (firstStage) await write({ ...firstStage, lineNum: lineNum++ });
-			if (firstResource) await write({ ...firstResource, lineNum: lineNum++ });
+			if (firstStage)
+				await write({ ...firstStage, lineNum: lineNum++, warnings });
+			if (firstResource)
+				await write({ ...firstResource, lineNum: lineNum++, warnings });
 
 			for (const item of lineItem.items) {
-				await write({ ...item, lineNum: lineNum++ });
+				await write({ ...item, lineNum: lineNum++, warnings });
 			}
 
 			for (const stage of restStages) {
-				await write({ ...stage, lineNum: lineNum++ });
+				await write({ ...stage, lineNum: lineNum++, warnings });
 			}
 		}
 	});

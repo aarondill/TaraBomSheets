@@ -1,10 +1,4 @@
-import {
-    ErrorItem,
-    getData,
-    outputErrors,
-    outputResults,
-    SourceItem,
-} from "./data";
+import { getData, outputResults, SourceItem } from "./data";
 /** TODO:
  *
  */
@@ -30,6 +24,7 @@ interface LineItem {
  * stages[n][1]
  */
 export interface Result {
+	warnings: string[];
 	items: Item[];
 	stages: (RouteStage | Resource)[];
 }
@@ -72,7 +67,8 @@ function getItems(itemInfo: SourceItem): Item[] {
 
 function getResourcesAndStages(
 	itemInfo: SourceItem,
-	isAssembly: boolean
+	isAssembly: boolean,
+	warnings: string[] /** This gets mutated! */
 ): (RouteStage | Resource)[] {
 	if (
 		itemInfo["MAKE / BUY"] === "Buy" &&
@@ -85,11 +81,12 @@ function getResourcesAndStages(
 	const resources = data.routeStagesAndResources.filter(
 		item => item["Item Groups - Type"] === key
 	);
-	if (resources.length === 0) throw new Error("No resources found: " + key);
-	if (resources.length === 1) {
-		console.warn(
-			`Only one resource found for ${key} ignoring resources: PartNumber: ${itemInfo["PN#"]}`
-		);
+	if (resources.length <= 1) {
+		const warning =
+			resources.length === 0
+				? `No resources found for ${key}`
+				: `Only one resource found for ${key}`;
+		warnings.push(warning);
 		return [];
 	}
 	return resources.map(resource => {
@@ -115,8 +112,14 @@ function run(source: SourceItem): Result | null {
 	if (IGNORED_GROUPS.includes(source["ITEM GROUP"])) return null;
 	const items = getItems(source);
 	const isAssembly = probablyIsAssembly(source, items);
-	const resourcesAndStages = getResourcesAndStages(source, isAssembly);
+	const warnings: string[] = [];
+	const resourcesAndStages = getResourcesAndStages(
+		source,
+		isAssembly,
+		warnings
+	);
 	return {
+		warnings,
 		items,
 		stages: resourcesAndStages,
 	};
@@ -124,17 +127,16 @@ function run(source: SourceItem): Result | null {
 
 const data = await getData();
 const results: Result[] = [];
-const errors: ErrorItem[] = [];
 
 for (const source of data.allItems) {
-	try {
-		const result = run(source);
-		if (result === null) continue;
-		results.push(result);
-	} catch (e) {
-		const err = e instanceof Error ? e.message : String(e);
-		console.warn(err);
-		errors.push({ ...source, error: err });
+	const result = run(source);
+	if (result === null) continue;
+	results.push(result);
+	if (result.warnings.length > 0) {
+		console.warn("Warnings for " + source["PN#"] + ":");
+		for (const warning of result.warnings) {
+			console.warn("       " + warning);
+		}
 	}
 }
-await Promise.all([outputResults(results), outputErrors(errors)]);
+await outputResults(results);
