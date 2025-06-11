@@ -4,6 +4,7 @@ import { PathLike } from "fs";
 import fs from "fs/promises";
 import { once } from "node:events";
 import { createWriteStream } from "node:fs";
+import path from "node:path";
 import { Result } from ".";
 
 export type SourceItem = Data["allItems"][number];
@@ -76,8 +77,10 @@ export async function getData(): Promise<Data> {
 	return { allItems, routeStagesAndResources, ittItems };
 }
 
-export function outputResults(result: Result[]): Promise<void> {
-	return writeCsv("output.csv", async write => {
+export async function outputResults(result: Result[]): Promise<void> {
+	const file = path.join("output", "results.csv");
+	await fs.mkdir(path.dirname(file), { recursive: true });
+	return writeCsv(file, async write => {
 		for (const lineItem of result) {
 			const [firstStage, firstResource, ...restStages] = lineItem.stages;
 			let lineNum = 1;
@@ -96,8 +99,10 @@ export function outputResults(result: Result[]): Promise<void> {
 }
 
 export type ErrorItem = SourceItem & { error: string };
-export function outputErrors(errors: ErrorItem[]): Promise<void> {
-	return writeCsv("errors.csv", async write => {
+export async function outputErrors(errors: ErrorItem[]): Promise<void> {
+	const file = path.join("output", "errors.csv");
+	await fs.mkdir(path.dirname(file), { recursive: true });
+	return writeCsv(file, async write => {
 		for (const error of errors) {
 			await write(error);
 		}
