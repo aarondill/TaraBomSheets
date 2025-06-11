@@ -24,7 +24,7 @@ interface LineItem {
  * stages[n][1]
  */
 export interface Result {
-	warnings: string[];
+	Warnings: string[];
 	items: Item[];
 	stages: (RouteStage | Resource)[];
 }
@@ -119,7 +119,7 @@ function run(source: SourceItem): Result | null {
 		warnings
 	);
 	return {
-		warnings,
+		Warnings: warnings,
 		items,
 		stages: resourcesAndStages,
 	};
@@ -132,9 +132,9 @@ for (const source of data.allItems) {
 	const result = run(source);
 	if (result === null) continue;
 	results.push(result);
-	if (result.warnings.length > 0) {
+	if (result.Warnings.length > 0) {
 		console.warn("Warnings for " + source["PN#"] + ":");
-		for (const warning of result.warnings) {
+		for (const warning of result.Warnings) {
 			console.warn("       " + warning);
 		}
 	}
