@@ -75,7 +75,6 @@ export async function getData(): Promise<Data> {
 		>,
 		readCSV("itt-items.csv") as Promise<Data["ittItems"]>,
 	]);
-	console.log(routeStagesAndResources);
 	return { allItems, routeStagesAndResources, ittItems };
 }
 
