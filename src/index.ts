@@ -57,7 +57,7 @@ function getItems(itemInfo: SourceItem): Item[] {
 		item => item.ParentKey === itemInfo["PN#"]
 	);
 	return items.map(item => ({
-		Quantity: item.Quanity,
+		Quantity: item.Quantity,
 		ParentKey: item.ParentKey,
 		ItemCode: item.ItemCode,
 		Warehouse: "040",

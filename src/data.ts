@@ -29,7 +29,7 @@ export interface Data {
 	ittItems: {
 		ParentKey: string;
 		ItemCode: string;
-		Quanity: string;
+		Quantity: string;
 	}[];
 }
 
