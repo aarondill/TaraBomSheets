@@ -49,20 +49,20 @@ async function readCSV(
  */
 function writeCsv(
 	path: PathLike,
-	cb: (write: (data: any) => Promise<void>) => Promise<void>,
+	cb: (write: (data: unknown) => Promise<void>) => Promise<void>,
 	columns?: string[]
 ): Promise<void> {
 	const writableStream = createWriteStream(path);
 	const stringifier = stringify({ header: true, columns });
 	stringifier.pipe(writableStream);
-	return new Promise(async (resolve, reject) => {
-		writableStream.on("finish", resolve);
-		writableStream.on("error", reject);
-		await cb(async (data: any) => {
-			if (!stringifier.write(data)) await once(stringifier, "drain");
-		});
-		stringifier.end();
-	});
+	const { promise, resolve, reject } = Promise.withResolvers<void>();
+	writableStream.on("finish", resolve).on("error", reject);
+	void cb(async (data: unknown) => {
+		if (!stringifier.write(data)) await once(stringifier, "drain");
+	})
+		.then(() => stringifier.end())
+		.catch(reject);
+	return promise;
 }
 
 export async function getData(): Promise<Data> {

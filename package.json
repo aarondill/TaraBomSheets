@@ -8,7 +8,9 @@
 	"type": "module",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
-	"files": ["dist"],
+	"files": [
+		"dist"
+	],
 	"scripts": {
 		"build": "bun build ./src/index.ts --outdir ./dist --target node",
 		"lint": "bun run lint:sort && bun run lint:prettier && bun run lint:eslint",
@@ -39,5 +41,7 @@
 	"publishConfig": {
 		"access": "private"
 	},
-	"contributers": ["Aaron Dill"]
+	"contributers": [
+		"Aaron Dill"
+	]
 }
