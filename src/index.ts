@@ -66,6 +66,13 @@ function getResourcesAndStages(
 	itemInfo: SourceItem,
 	isAssembly: boolean
 ): (RouteStage | Resource)[] {
+	if (
+		itemInfo["MAKE / BUY"] === "Buy" ||
+		itemInfo["BOM Type"] === "Not a BOM"
+	) {
+		return []; // these don't have resources
+	}
+
 	const key = itemInfo["ITEM GROUP"] + " - " + (isAssembly ? "ASSY" : "MFG");
 	const resources = data.routeStagesAndResources.filter(
 		item => item["Item Groups - Type"] === key

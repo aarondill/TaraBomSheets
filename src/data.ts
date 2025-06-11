@@ -16,6 +16,9 @@ export interface Data {
 		"ITEM GROUP": string;
 		"PN#": string;
 		DESCRIPTION: string;
+		// Buy or Not a BOM don't get routeStagesAndResources
+		"MAKE / BUY": "Make" | "Buy";
+		"BOM Type": "Not a BOM" | "Production";
 	}[];
 	routeStagesAndResources: {
 		// "ITEM GROUP" + " ASSY" or "ITEM GROUP" + " MFG"
@@ -65,11 +68,15 @@ export async function outputResults(result: Result[]): Promise<void> {
 		for (const lineItem of result) {
 			const [firstStage, firstResource, ...restStages] = lineItem.stages;
 			let lineNum = 1;
-			await write(stringifier, { ...firstStage, lineNum: lineNum++ });
-			await write(stringifier, { ...firstResource, lineNum: lineNum++ });
+			if (firstStage)
+				await write(stringifier, { ...firstStage, lineNum: lineNum++ });
+			if (firstResource)
+				await write(stringifier, { ...firstResource, lineNum: lineNum++ });
+
 			for (const item of lineItem.items) {
 				await write(stringifier, { ...item, lineNum: lineNum++ });
 			}
+
 			for (const stage of restStages) {
 				await write(stringifier, { ...stage, lineNum: lineNum++ });
 			}
