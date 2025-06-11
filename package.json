@@ -14,7 +14,7 @@
 	"scripts": {
 		"build": "bun build ./src/index.ts --outdir ./dist --target node",
 		"lint": "bun run lint:sort && bun run lint:prettier && bun run lint:eslint",
-		"lint:eslint": "eslint . --fix --ext .js,.ts,.mjs,.mts,.cjs,.cts,.tsx,.jsx",
+		"lint:eslint": "eslint . --fix --ext .js,.ts,.mjs,.mts,.cjs,.cts,.tsx,.jsx --ignore-pattern 'dist/*'",
 		"lint:prettier": "prettier -w .",
 		"lint:sort": "sort-package-json",
 		"test": "bun run test:typecheck && bun run lint && bun run test:bun",
