@@ -1,9 +1,9 @@
 import {
-    ErrorItem,
-    getData,
-    outputErrors,
-    outputResults,
-    SourceItem,
+	ErrorItem,
+	getData,
+	outputErrors,
+	outputResults,
+	SourceItem,
 } from "./data";
 /** TODO:
  *
