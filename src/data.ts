@@ -4,7 +4,6 @@ import { PathLike } from "fs";
 import fs from "fs/promises";
 import { once } from "node:events";
 import { createWriteStream } from "node:fs";
-import { Writable } from "node:stream";
 import { Result } from ".";
 
 export type SourceItem = Data["allItems"][number];
@@ -42,6 +41,29 @@ async function readCSV(
 		skip_empty_lines: true,
 	}) as Record<string, string>[];
 }
+/**
+ * Writes a CSV file to the given path.
+ * @param path The path to write to.
+ * @param cb A callback that takes a stream and write the records to it.
+ * @param columns The (optional) columns to write to the CSV file. If undefined, columns will be inferred from the data.
+ */
+function writeCsv(
+	path: PathLike,
+	cb: (write: (data: any) => Promise<void>) => Promise<void>,
+	columns?: string[]
+): Promise<void> {
+	const writableStream = createWriteStream(path);
+	const stringifier = stringify({ header: true, columns });
+	stringifier.pipe(writableStream);
+	return new Promise(async (resolve, reject) => {
+		writableStream.on("finish", resolve);
+		writableStream.on("error", reject);
+		await cb(async (data: any) => {
+			if (!stringifier.write(data)) await once(stringifier, "drain");
+		});
+		stringifier.end();
+	});
+}
 
 export async function getData(): Promise<Data> {
 	const [allItems, routeStagesAndResources, ittItems] = await Promise.all([
@@ -54,33 +76,30 @@ export async function getData(): Promise<Data> {
 	return { allItems, routeStagesAndResources, ittItems };
 }
 
-async function write(stream: Writable, data: any) {
-	if (!stream.write(data)) return once(stream, "drain");
-}
-
-export async function outputResults(result: Result[]): Promise<void> {
-	const writableStream = createWriteStream("output.csv");
-	const stringifier = stringify({ header: true });
-	stringifier.pipe(writableStream);
-	return new Promise(async (resolve, reject) => {
-		writableStream.on("finish", resolve);
-		writableStream.on("error", reject);
+export function outputResults(result: Result[]): Promise<void> {
+	return writeCsv("output.csv", async write => {
 		for (const lineItem of result) {
 			const [firstStage, firstResource, ...restStages] = lineItem.stages;
 			let lineNum = 1;
-			if (firstStage)
-				await write(stringifier, { ...firstStage, lineNum: lineNum++ });
-			if (firstResource)
-				await write(stringifier, { ...firstResource, lineNum: lineNum++ });
+			if (firstStage) await write({ ...firstStage, lineNum: lineNum++ });
+			if (firstResource) await write({ ...firstResource, lineNum: lineNum++ });
 
 			for (const item of lineItem.items) {
-				await write(stringifier, { ...item, lineNum: lineNum++ });
+				await write({ ...item, lineNum: lineNum++ });
 			}
 
 			for (const stage of restStages) {
-				await write(stringifier, { ...stage, lineNum: lineNum++ });
+				await write({ ...stage, lineNum: lineNum++ });
 			}
 		}
-		stringifier.end();
+	});
+}
+
+export type ErrorItem = SourceItem & { error: string };
+export function outputErrors(errors: ErrorItem[]): Promise<void> {
+	return writeCsv("errors.csv", async write => {
+		for (const error of errors) {
+			await write(error);
+		}
 	});
 }

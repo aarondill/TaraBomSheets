@@ -1,4 +1,10 @@
-import { getData, outputResults, SourceItem } from "./data";
+import {
+    ErrorItem,
+    getData,
+    outputErrors,
+    outputResults,
+    SourceItem,
+} from "./data";
 /** TODO:
  *
  */
@@ -100,5 +106,17 @@ function run(source: SourceItem): Result {
 }
 
 const data = await getData();
-const results = data.allItems.map(run);
-await outputResults(results);
+const results: Result[] = [];
+const errors: ErrorItem[] = [];
+
+for (const source of data.allItems) {
+	try {
+		const result = run(source);
+		results.push(result);
+	} catch (e) {
+		const err = e instanceof Error ? e.message : String(e);
+		console.warn(err);
+		errors.push({ ...source, error: err });
+	}
+}
+await Promise.all([outputResults(results), outputErrors(errors)]);
