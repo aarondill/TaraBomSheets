@@ -1,9 +1,9 @@
 import {
-	ErrorItem,
-	getData,
-	outputErrors,
-	outputResults,
-	SourceItem,
+    ErrorItem,
+    getData,
+    outputErrors,
+    outputResults,
+    SourceItem,
 } from "./data";
 /** TODO:
  *
@@ -73,7 +73,7 @@ function getResourcesAndStages(
 	isAssembly: boolean
 ): (RouteStage | Resource)[] {
 	if (
-		itemInfo["MAKE / BUY"] === "Buy" ||
+		itemInfo["MAKE / BUY"] === "Buy" &&
 		itemInfo["BOM Type"] === "Not a BOM"
 	) {
 		return []; // these don't have resources
