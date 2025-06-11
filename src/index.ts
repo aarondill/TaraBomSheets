@@ -1,9 +1,9 @@
 import {
-	ErrorItem,
-	getData,
-	outputErrors,
-	outputResults,
-	SourceItem,
+    ErrorItem,
+    getData,
+    outputErrors,
+    outputResults,
+    SourceItem,
 } from "./data";
 /** TODO:
  *
@@ -101,7 +101,15 @@ function getResourcesAndStages(
 	});
 }
 
-function run(source: SourceItem): Result {
+const IGNORED_GROUPS: string[] = [
+	"ARCHIVE",
+	"OBSOLETE PARTS",
+	"OUTSIDE PROCESSES",
+	"QC-TOOLING / GAUGES",
+	"R & D",
+];
+function run(source: SourceItem): Result | null {
+	if (IGNORED_GROUPS.includes(source["ITEM GROUP"])) return null;
 	const items = getItems(source);
 	const isAssembly = probablyIsAssembly(source, items);
 	const resourcesAndStages = getResourcesAndStages(source, isAssembly);
@@ -118,6 +126,7 @@ const errors: ErrorItem[] = [];
 for (const source of data.allItems) {
 	try {
 		const result = run(source);
+		if (result === null) continue;
 		results.push(result);
 	} catch (e) {
 		const err = e instanceof Error ? e.message : String(e);
