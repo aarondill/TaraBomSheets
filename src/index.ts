@@ -76,6 +76,7 @@ function getResourcesAndStages(
 	) {
 		return []; // these don't have resources
 	}
+	if (IGNORED_GROUPS.includes(itemInfo["ITEM GROUP"])) return [];
 
 	const key = itemInfo["ITEM GROUP"] + " - " + (isAssembly ? "ASSY" : "MFG");
 	const resources = data.routeStagesAndResources.filter(
@@ -109,7 +110,6 @@ const IGNORED_GROUPS: string[] = [
 	"CSS-OBSO PARTS",
 ];
 function run(source: SourceItem): Result | null {
-	if (IGNORED_GROUPS.includes(source["ITEM GROUP"])) return null;
 	const items = getItems(source);
 	const isAssembly = probablyIsAssembly(source, items);
 	const warnings: string[] = [];
