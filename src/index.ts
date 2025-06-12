@@ -10,7 +10,9 @@ interface LineItem {
 	Quantity: string; // RouteStages don't have this
 	Warehouse: "040";
 	ItemType: "Route" | "pit_Resource" | "pit_Item";
-	// LineNum counts from 1
+	// These are added by the formatting function
+	LineNum?: number;
+	RouteSequence?: number;
 }
 /*
  * These should be output as:
@@ -26,8 +28,7 @@ interface LineItem {
 export interface Result {
 	Warnings: string[];
 	items: Item[];
-	resources: Resource[];
-	stages: RouteStage[];
+	stages: (Resource | RouteStage)[];
 }
 interface Item extends LineItem {
 	Quantity: string;
@@ -70,15 +71,14 @@ function getResourcesAndStages(
 	itemInfo: SourceItem,
 	isAssembly: boolean,
 	warnings: string[] /** This gets mutated! */
-): [RouteStage[], Resource[]] {
-	const EMPTY: [RouteStage[], Resource[]] = [[], []];
+): (RouteStage | Resource)[] {
 	if (
 		itemInfo["MAKE / BUY"] === "Buy" &&
 		itemInfo["BOM Type"] === "Not a BOM"
 	) {
-		return EMPTY; // these don't have resources
+		return []; // these don't have resources
 	}
-	if (IGNORED_GROUPS.includes(itemInfo["ITEM GROUP"])) return EMPTY;
+	if (IGNORED_GROUPS.includes(itemInfo["ITEM GROUP"])) return [];
 
 	const key = itemInfo["ITEM GROUP"] + " - " + (isAssembly ? "ASSY" : "MFG");
 	const stagesAndResources = data.routeStagesAndResources.filter(
@@ -90,9 +90,9 @@ function getResourcesAndStages(
 				? `No resources found for ${key}`
 				: `Only one resource found for ${key}`;
 		warnings.push(warning);
-		return EMPTY;
+		return [];
 	}
-	const res = stagesAndResources.map(resource => {
+	return stagesAndResources.map(resource => {
 		const Quantity = resource.Quantity,
 			ParentKey = itemInfo["PN#"],
 			ItemCode = resource.ItemCode,
@@ -113,11 +113,6 @@ function getResourcesAndStages(
 					ItemType: "pit_Resource",
 				} as const);
 	});
-	{
-		const routes = res.filter(i => i.ItemType == "Route");
-		const resources = res.filter(i => i.ItemType == "pit_Resource");
-		return [routes, resources];
-	}
 }
 
 const IGNORED_GROUPS: string[] = [
@@ -132,17 +127,55 @@ function run(source: SourceItem): Result | null {
 	const items = getItems(source);
 	const isAssembly = probablyIsAssembly(source, items);
 	const warnings: string[] = [];
-	const [stages, resources] = getResourcesAndStages(
-		source,
-		isAssembly,
-		warnings
-	);
+	const stages = getResourcesAndStages(source, isAssembly, warnings);
 	return {
 		Warnings: warnings,
 		items,
-		resources,
 		stages,
 	};
+}
+
+function formatLineNums(input: Result): Result {
+	const [firstStage, firstResource, ...restStages] = input.stages;
+	const items = input.items;
+	let lineNum = 0;
+	let routeSequence = 1;
+
+	const result: Result = {
+		items: [],
+		stages: [],
+		Warnings: input.Warnings,
+	};
+	if (firstStage) {
+		result.stages.push({
+			...firstStage,
+			LineNum: lineNum++,
+			RouteSequence: routeSequence,
+		});
+	}
+	if (firstResource) {
+		result.stages.push({
+			...firstResource,
+			LineNum: lineNum++,
+			RouteSequence: routeSequence,
+		});
+	}
+	for (const item of items) {
+		result.items.push({
+			...item,
+			LineNum: lineNum++,
+			RouteSequence: routeSequence,
+		});
+	}
+	for (const resource of restStages) {
+		if (resource.ItemType == "Route") routeSequence++; // the rest is a part of the next stage
+		result.stages.push({
+			...resource,
+			LineNum: lineNum++,
+			RouteSequence: routeSequence,
+		});
+	}
+	return result;
 }
 
 const data = await getData();
@@ -151,7 +184,7 @@ const results: Result[] = [];
 for (const source of data.allItems) {
 	const result = run(source);
 	if (result === null) continue;
-	results.push(result);
+	results.push(formatLineNums(result));
 	if (result.Warnings.length > 0) {
 		console.warn("Warnings for " + source["PN#"] + ":");
 		for (const warning of result.Warnings) {

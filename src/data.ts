@@ -88,21 +88,20 @@ export async function outputResults(result: Result[]): Promise<void> {
 			// write the BOM and resources
 			for (const lineItem of result) {
 				const Warnings = lineItem.Warnings.join("; ");
-				const [firstResource, ...restResources] = lineItem.resources;
-				let lineNum = 0;
+				const [firstRoute, firstResource, ...restStages] = lineItem.stages;
 				if (firstResource)
 					await write({
 						...firstResource,
-						lineNum: lineNum++,
 						Warnings,
 					});
 
 				for (const item of lineItem.items) {
-					await write({ ...item, lineNum: lineNum++, Warnings });
+					await write({ ...item, Warnings });
 				}
 
-				for (const resource of restResources) {
-					await write({ ...resource, lineNum: lineNum++, Warnings });
+				for (const resource of restStages) {
+					if (resource.ItemType !== "pit_Resource") continue; // skip routes
+					await write({ ...resource, Warnings });
 				}
 			}
 		}),
@@ -110,9 +109,8 @@ export async function outputResults(result: Result[]): Promise<void> {
 			// write the route stages
 			for (const lineItem of result) {
 				const Warnings = lineItem.Warnings.join("; ");
-				let lineNum = 0;
 				for (const stage of lineItem.stages) {
-					await write({ ...stage, lineNum: lineNum++, Warnings });
+					await write({ ...stage, Warnings });
 				}
 			}
 		}),
