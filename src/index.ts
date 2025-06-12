@@ -26,7 +26,8 @@ interface LineItem {
 export interface Result {
 	Warnings: string[];
 	items: Item[];
-	stages: (RouteStage | Resource)[];
+	resources: Resource[];
+	stages: RouteStage[];
 }
 interface Item extends LineItem {
 	Quantity: string;
@@ -69,36 +70,54 @@ function getResourcesAndStages(
 	itemInfo: SourceItem,
 	isAssembly: boolean,
 	warnings: string[] /** This gets mutated! */
-): (RouteStage | Resource)[] {
+): [RouteStage[], Resource[]] {
+	const EMPTY: [RouteStage[], Resource[]] = [[], []];
 	if (
 		itemInfo["MAKE / BUY"] === "Buy" &&
 		itemInfo["BOM Type"] === "Not a BOM"
 	) {
-		return []; // these don't have resources
+		return EMPTY; // these don't have resources
 	}
-	if (IGNORED_GROUPS.includes(itemInfo["ITEM GROUP"])) return [];
+	if (IGNORED_GROUPS.includes(itemInfo["ITEM GROUP"])) return EMPTY;
 
 	const key = itemInfo["ITEM GROUP"] + " - " + (isAssembly ? "ASSY" : "MFG");
-	const resources = data.routeStagesAndResources.filter(
+	const stagesAndResources = data.routeStagesAndResources.filter(
 		item => item["Item Groups - Type"] === key
 	);
-	if (resources.length <= 1) {
+	if (stagesAndResources.length <= 1) {
 		const warning =
-			resources.length === 0
+			stagesAndResources.length === 0
 				? `No resources found for ${key}`
 				: `Only one resource found for ${key}`;
 		warnings.push(warning);
-		return [];
+		return EMPTY;
 	}
-	return resources.map(resource => {
+	const res = stagesAndResources.map(resource => {
 		const Quantity = resource.Quantity,
 			ParentKey = itemInfo["PN#"],
 			ItemCode = resource.ItemCode,
 			Warehouse = "040";
 		return Quantity === ""
-			? { Quantity, ParentKey, ItemCode, Warehouse, ItemType: "Route" }
-			: { Quantity, ParentKey, ItemCode, Warehouse, ItemType: "pit_Resource" };
+			? ({
+					Quantity,
+					ParentKey,
+					ItemCode,
+					Warehouse,
+					ItemType: "Route",
+				} as const)
+			: ({
+					Quantity,
+					ParentKey,
+					ItemCode,
+					Warehouse,
+					ItemType: "pit_Resource",
+				} as const);
 	});
+	{
+		const routes = res.filter(i => i.ItemType == "Route");
+		const resources = res.filter(i => i.ItemType == "pit_Resource");
+		return [routes, resources];
+	}
 }
 
 const IGNORED_GROUPS: string[] = [
@@ -113,7 +132,7 @@ function run(source: SourceItem): Result | null {
 	const items = getItems(source);
 	const isAssembly = probablyIsAssembly(source, items);
 	const warnings: string[] = [];
-	const resourcesAndStages = getResourcesAndStages(
+	const [stages, resources] = getResourcesAndStages(
 		source,
 		isAssembly,
 		warnings
@@ -121,7 +140,8 @@ function run(source: SourceItem): Result | null {
 	return {
 		Warnings: warnings,
 		items,
-		stages: resourcesAndStages,
+		resources,
+		stages,
 	};
 }
 

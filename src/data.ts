@@ -79,31 +79,44 @@ export async function getData(): Promise<Data> {
 }
 
 export async function outputResults(result: Result[]): Promise<void> {
-	const file = path.join("output", "results.csv");
-	await fs.mkdir(path.dirname(file), { recursive: true });
-	return writeCsv(file, async write => {
-		for (const lineItem of result) {
-			const Warnings = lineItem.Warnings.join("; ");
-			const [firstStage, firstResource, ...restStages] = lineItem.stages;
-			let lineNum = 1;
-			if (firstStage)
-				await write({ ...firstStage, lineNum: lineNum++, Warnings });
-			if (firstResource)
-				await write({
-					...firstResource,
-					lineNum: lineNum++,
-					Warnings,
-				});
+	const bom = path.join("output", "bom.csv");
+	const routeStages = path.join("output", "route-stages.csv");
+	await fs.mkdir(path.dirname(bom), { recursive: true });
 
-			for (const item of lineItem.items) {
-				await write({ ...item, lineNum: lineNum++, Warnings });
-			}
+	await Promise.all([
+		writeCsv(bom, async write => {
+			// write the BOM and resources
+			for (const lineItem of result) {
+				const Warnings = lineItem.Warnings.join("; ");
+				const [firstResource, ...restResources] = lineItem.resources;
+				let lineNum = 0;
+				if (firstResource)
+					await write({
+						...firstResource,
+						lineNum: lineNum++,
+						Warnings,
+					});
 
-			for (const stage of restStages) {
-				await write({ ...stage, lineNum: lineNum++, Warnings });
+				for (const item of lineItem.items) {
+					await write({ ...item, lineNum: lineNum++, Warnings });
+				}
+
+				for (const resource of restResources) {
+					await write({ ...resource, lineNum: lineNum++, Warnings });
+				}
 			}
-		}
-	});
+		}),
+		writeCsv(routeStages, async write => {
+			// write the route stages
+			for (const lineItem of result) {
+				const Warnings = lineItem.Warnings.join("; ");
+				let lineNum = 0;
+				for (const stage of lineItem.stages) {
+					await write({ ...stage, lineNum: lineNum++, Warnings });
+				}
+			}
+		}),
+	]);
 }
 
 export type ErrorItem = SourceItem & { error: string };
