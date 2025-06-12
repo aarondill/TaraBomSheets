@@ -110,6 +110,7 @@ export async function outputResults(result: Result[]): Promise<void> {
 			for (const lineItem of result) {
 				const Warnings = lineItem.Warnings.join("; ");
 				for (const stage of lineItem.stages) {
+					if (stage.ItemType === "pit_Resource") continue; // skip resources
 					await write({ ...stage, Warnings });
 				}
 			}
