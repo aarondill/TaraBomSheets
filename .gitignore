@@ -2,6 +2,7 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=backup,firebase,git,vercel,visualstudiocode,dotenv,nextjs,yarn,node
 
 /bun.lock
+output/
 
 ### Backup ###
 *.bak
