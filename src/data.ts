@@ -92,6 +92,11 @@ export async function outputResults(result: Result[]): Promise<void> {
 	const routeStages = path.join("output", "route-stages.csv");
 	await fs.mkdir(path.dirname(bom), { recursive: true });
 
+	const TYPE_NUMS = {
+		pit_Item: 4,
+		pit_Resource: 290,
+		Route: undefined,
+	};
 	await Promise.all([
 		writeCsv(bom, async write => {
 			// write the BOM and resources
@@ -102,6 +107,7 @@ export async function outputResults(result: Result[]): Promise<void> {
 				if (firstResource)
 					await write({
 						...firstResource,
+						ItemType: TYPE_NUMS[firstResource.ItemType],
 						SeqNum: lineNum + 1,
 						LineNum: lineNum++,
 						Warnings,
@@ -110,6 +116,7 @@ export async function outputResults(result: Result[]): Promise<void> {
 				for (const item of lineItem.items) {
 					await write({
 						...item,
+						ItemType: TYPE_NUMS[item.ItemType],
 						SeqNum: lineNum + 1,
 						LineNum: lineNum++,
 						Warnings,
@@ -120,6 +127,7 @@ export async function outputResults(result: Result[]): Promise<void> {
 					if (resource.ItemType !== "pit_Resource") continue; // skip routes
 					await write({
 						...resource,
+						ItemType: TYPE_NUMS[resource.ItemType],
 						SeqNum: lineNum + 1,
 						LineNum: lineNum++,
 						Warnings,
@@ -136,6 +144,7 @@ export async function outputResults(result: Result[]): Promise<void> {
 					if (stage.ItemType === "pit_Resource") continue; // skip resources
 					await write({
 						...stage,
+						ItemType: TYPE_NUMS[stage.ItemType],
 						SeqNum: lineNum + 1,
 						LineNum: lineNum++,
 						Warnings,
