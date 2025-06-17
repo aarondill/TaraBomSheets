@@ -93,6 +93,7 @@ export async function outputResults(result: Result[]): Promise<void> {
 				if (firstResource)
 					await write({
 						...firstResource,
+						SeqNum: lineNum + 1,
 						LineNum: lineNum++,
 						Warnings,
 					});
@@ -100,6 +101,7 @@ export async function outputResults(result: Result[]): Promise<void> {
 				for (const item of lineItem.items) {
 					await write({
 						...item,
+						SeqNum: lineNum + 1,
 						LineNum: lineNum++,
 						Warnings,
 					});
@@ -109,6 +111,7 @@ export async function outputResults(result: Result[]): Promise<void> {
 					if (resource.ItemType !== "pit_Resource") continue; // skip routes
 					await write({
 						...resource,
+						SeqNum: lineNum + 1,
 						LineNum: lineNum++,
 						Warnings,
 					});
@@ -124,6 +127,7 @@ export async function outputResults(result: Result[]): Promise<void> {
 					if (stage.ItemType === "pit_Resource") continue; // skip resources
 					await write({
 						...stage,
+						SeqNum: lineNum + 1,
 						LineNum: lineNum++,
 						Warnings,
 					});
