@@ -10,7 +10,7 @@ interface LineItem {
 	Quantity: string; // RouteStages don't have this
 	Warehouse: "040";
 	ItemType: "Route" | "pit_Resource" | "pit_Item";
-	StageId?: number;
+	StageId?: number | "";
 }
 /*
  * These should be output as:
@@ -141,10 +141,17 @@ function run(source: SourceItem): Result | null {
 	};
 }
 
-function formatLineNums(input: Result): Result {
+function formatStageIds(input: Result): Result {
 	const [firstStage, firstResource, ...restStages] = input.stages;
+	if (!firstStage && !firstResource) {
+		const newItems = input.items.map(
+			item => ({ ...item, StageId: "" }) as const
+		);
+		return { items: newItems, stages: [], Warnings: input.Warnings };
+	}
+
 	const items = input.items;
-	let stageId = 1;
+	let StageId = 1;
 
 	const result: Result = {
 		items: [],
@@ -152,29 +159,17 @@ function formatLineNums(input: Result): Result {
 		Warnings: input.Warnings,
 	};
 	if (firstStage) {
-		result.stages.push({
-			...firstStage,
-			StageId: stageId,
-		});
+		result.stages.push({ ...firstStage, StageId });
 	}
 	if (firstResource) {
-		result.stages.push({
-			...firstResource,
-			StageId: stageId,
-		});
+		result.stages.push({ ...firstResource, StageId });
 	}
 	for (const item of items) {
-		result.items.push({
-			...item,
-			StageId: stageId,
-		});
+		result.items.push({ ...item, StageId });
 	}
 	for (const resource of restStages) {
-		if (resource.ItemType == "Route") stageId++; // the rest is a part of the next stage
-		result.stages.push({
-			...resource,
-			StageId: stageId,
-		});
+		if (resource.ItemType == "Route") StageId++; // the rest is a part of the next stage
+		result.stages.push({ ...resource, StageId });
 	}
 	return result;
 }
@@ -185,7 +180,7 @@ const results: Result[] = [];
 for (const source of data.allItems) {
 	const result = run(source);
 	if (result === null) continue;
-	results.push(formatLineNums(result));
+	results.push(formatStageIds(result));
 	if (result.Warnings.length > 0) {
 		console.warn("Warnings for " + source["PN#"] + ":");
 		for (const warning of result.Warnings) {
