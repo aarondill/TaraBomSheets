@@ -10,8 +10,6 @@ interface LineItem {
 	Quantity: string; // RouteStages don't have this
 	Warehouse: "040";
 	ItemType: "Route" | "pit_Resource" | "pit_Item";
-	// These are added by the formatting function
-	LineNum?: number;
 	RouteSequence?: number;
 }
 /*
