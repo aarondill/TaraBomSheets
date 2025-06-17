@@ -38,6 +38,7 @@ interface Resource extends LineItem {
 }
 interface RouteStage extends LineItem {
 	Quantity: "";
+	StgEntry: string;
 	ItemType: "Route";
 }
 
@@ -95,21 +96,28 @@ function getResourcesAndStages(
 			ParentKey = itemInfo["PN#"],
 			ItemCode = resource.ItemCode,
 			Warehouse = "040";
-		return Quantity === ""
-			? ({
-					Quantity,
-					ParentKey,
-					ItemCode,
-					Warehouse,
-					ItemType: "Route",
-				} as const)
-			: ({
-					Quantity,
-					ParentKey,
-					ItemCode,
-					Warehouse,
-					ItemType: "pit_Resource",
-				} as const);
+		if (Quantity === "") {
+			const StgEntry =
+				data.routeStagesNumbers.find(entry => entry.Code === ItemCode)?.[
+					"Internal Number"
+				] ?? "";
+			if (StgEntry === "") warnings.push(`No StgEntry found for ${ItemCode}`);
+			return {
+				Quantity,
+				ParentKey,
+				ItemCode,
+				StgEntry,
+				Warehouse,
+				ItemType: "Route",
+			} as const;
+		}
+		return {
+			Quantity,
+			ParentKey,
+			ItemCode,
+			Warehouse,
+			ItemType: "pit_Resource",
+		};
 	});
 }
 

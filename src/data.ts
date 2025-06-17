@@ -31,6 +31,10 @@ export interface Data {
 		ItemCode: string;
 		Quantity: string;
 	}[];
+	routeStagesNumbers: {
+		"Internal Number": string;
+		Code: string;
+	}[];
 }
 
 async function readCSV(
@@ -68,14 +72,18 @@ function writeCsv(
 }
 
 export async function getData(): Promise<Data> {
-	const [allItems, routeStagesAndResources, ittItems] = await Promise.all([
-		readCSV("all-items.csv") as Promise<Data["allItems"]>,
-		readCSV("route-stages-and-resources.csv") as Promise<
-			Data["routeStagesAndResources"]
-		>,
-		readCSV("itt-items.csv") as Promise<Data["ittItems"]>,
-	]);
-	return { allItems, routeStagesAndResources, ittItems };
+	const [allItems, routeStagesAndResources, ittItems, routeStagesNumbers] =
+		await Promise.all([
+			readCSV("all-items.csv") as Promise<Data["allItems"]>,
+			readCSV("route-stages-and-resources.csv") as Promise<
+				Data["routeStagesAndResources"]
+			>,
+			readCSV("itt-items.csv") as Promise<Data["ittItems"]>,
+			readCSV("route-stages-numbers.csv") as Promise<
+				Data["routeStagesNumbers"]
+			>,
+		]);
+	return { allItems, routeStagesAndResources, ittItems, routeStagesNumbers };
 }
 
 export async function outputResults(result: Result[]): Promise<void> {
