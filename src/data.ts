@@ -98,60 +98,87 @@ export async function outputResults(result: Result[]): Promise<void> {
 		Route: undefined,
 	};
 	await Promise.all([
-		writeCsv(bom, async write => {
-			// write the BOM and resources
-			for (const lineItem of result) {
-				let lineNum = 0;
-				const Warnings = lineItem.Warnings.join("; ");
-				const [firstRoute, firstResource, ...restStages] = lineItem.stages;
-				if (firstResource)
-					await write({
-						...firstResource,
-						ItemType: TYPE_NUMS[firstResource.ItemType],
-						SeqNum: lineNum + 1,
-						LineNum: lineNum++,
-						Warnings,
-					});
+		writeCsv(
+			bom,
+			async write => {
+				// write the BOM and resources
+				for (const lineItem of result) {
+					let lineNum = 0;
+					const Warnings = lineItem.Warnings.join("; ");
+					const [firstRoute, firstResource, ...restStages] = lineItem.stages;
+					if (firstResource)
+						await write({
+							...firstResource,
+							ItemType: TYPE_NUMS[firstResource.ItemType],
+							SeqNum: lineNum + 1,
+							LineNum: lineNum++,
+							Warnings,
+						});
 
-				for (const item of lineItem.items) {
-					await write({
-						...item,
-						ItemType: TYPE_NUMS[item.ItemType],
-						SeqNum: lineNum + 1,
-						LineNum: lineNum++,
-						Warnings,
-					});
-				}
+					for (const item of lineItem.items) {
+						await write({
+							...item,
+							ItemType: TYPE_NUMS[item.ItemType],
+							SeqNum: lineNum + 1,
+							LineNum: lineNum++,
+							Warnings,
+						});
+					}
 
-				for (const resource of restStages) {
-					if (resource.ItemType !== "pit_Resource") continue; // skip routes
-					await write({
-						...resource,
-						ItemType: TYPE_NUMS[resource.ItemType],
-						SeqNum: lineNum + 1,
-						LineNum: lineNum++,
-						Warnings,
-					});
+					for (const resource of restStages) {
+						if (resource.ItemType !== "pit_Resource") continue; // skip routes
+						await write({
+							...resource,
+							ItemType: TYPE_NUMS[resource.ItemType],
+							SeqNum: lineNum + 1,
+							LineNum: lineNum++,
+							Warnings,
+						});
+					}
 				}
-			}
-		}),
-		writeCsv(routeStages, async write => {
-			// write the route stages
-			for (const lineItem of result) {
-				let lineNum = 0;
-				const Warnings = lineItem.Warnings.join("; ");
-				for (const stage of lineItem.stages) {
-					if (stage.ItemType === "pit_Resource") continue; // skip resources
-					await write({
-						...stage,
-						ItemType: TYPE_NUMS[stage.ItemType],
-						SeqNum: lineNum + 1,
-						LineNum: lineNum++,
-						Warnings,
-					});
+			},
+			[
+				"Quantity",
+				"ParentKey",
+				"ItemCode",
+				"Warehouse",
+				"ItemType",
+				"StageId",
+				"SeqNum",
+				"LineNum",
+				"Warnings",
+			]
+		),
+		writeCsv(
+			routeStages,
+			async write => {
+				// write the route stages
+				for (const lineItem of result) {
+					let lineNum = 0;
+					const Warnings = lineItem.Warnings.join("; ");
+					for (const stage of lineItem.stages) {
+						if (stage.ItemType === "pit_Resource") continue; // skip resources
+						await write({
+							...stage,
+							ItemType: TYPE_NUMS[stage.ItemType],
+							SeqNum: lineNum + 1,
+							LineNum: lineNum++,
+							Warnings,
+						});
+					}
 				}
-			}
-		}),
+			},
+			[
+				"ParentKey",
+				"ItemCode",
+				"StgEntry",
+				"Warehouse",
+				"StageId",
+				"SeqNum",
+				"LineNum",
+				"Warnings",
+			]
+		),
 	]);
 }
 
