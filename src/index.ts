@@ -138,7 +138,6 @@ function run(source: SourceItem): Result | null {
 function formatLineNums(input: Result): Result {
 	const [firstStage, firstResource, ...restStages] = input.stages;
 	const items = input.items;
-	let lineNum = 0;
 	let routeSequence = 1;
 
 	const result: Result = {
@@ -149,21 +148,18 @@ function formatLineNums(input: Result): Result {
 	if (firstStage) {
 		result.stages.push({
 			...firstStage,
-			LineNum: lineNum++,
 			RouteSequence: routeSequence,
 		});
 	}
 	if (firstResource) {
 		result.stages.push({
 			...firstResource,
-			LineNum: lineNum++,
 			RouteSequence: routeSequence,
 		});
 	}
 	for (const item of items) {
 		result.items.push({
 			...item,
-			LineNum: lineNum++,
 			RouteSequence: routeSequence,
 		});
 	}
@@ -171,7 +167,6 @@ function formatLineNums(input: Result): Result {
 		if (resource.ItemType == "Route") routeSequence++; // the rest is a part of the next stage
 		result.stages.push({
 			...resource,
-			LineNum: lineNum++,
 			RouteSequence: routeSequence,
 		});
 	}

@@ -87,31 +87,46 @@ export async function outputResults(result: Result[]): Promise<void> {
 		writeCsv(bom, async write => {
 			// write the BOM and resources
 			for (const lineItem of result) {
+				let lineNum = 0;
 				const Warnings = lineItem.Warnings.join("; ");
 				const [firstRoute, firstResource, ...restStages] = lineItem.stages;
 				if (firstResource)
 					await write({
 						...firstResource,
+						LineNum: lineNum++,
 						Warnings,
 					});
 
 				for (const item of lineItem.items) {
-					await write({ ...item, Warnings });
+					await write({
+						...item,
+						LineNum: lineNum++,
+						Warnings,
+					});
 				}
 
 				for (const resource of restStages) {
 					if (resource.ItemType !== "pit_Resource") continue; // skip routes
-					await write({ ...resource, Warnings });
+					await write({
+						...resource,
+						LineNum: lineNum++,
+						Warnings,
+					});
 				}
 			}
 		}),
 		writeCsv(routeStages, async write => {
 			// write the route stages
 			for (const lineItem of result) {
+				let lineNum = 0;
 				const Warnings = lineItem.Warnings.join("; ");
 				for (const stage of lineItem.stages) {
 					if (stage.ItemType === "pit_Resource") continue; // skip resources
-					await write({ ...stage, Warnings });
+					await write({
+						...stage,
+						LineNum: lineNum++,
+						Warnings,
+					});
 				}
 			}
 		}),
