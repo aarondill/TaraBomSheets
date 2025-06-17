@@ -43,6 +43,7 @@ async function readCSV(
 	const content = await fs.readFile(path, "utf8");
 	return parse(content, {
 		columns: true,
+		trim: true, // NO MORE SPACES!
 		skip_empty_lines: true,
 		bom: true,
 	}) as Record<string, string>[];
