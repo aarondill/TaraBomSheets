@@ -10,7 +10,7 @@ interface LineItem {
 	Quantity: string; // RouteStages don't have this
 	Warehouse: "040";
 	ItemType: "Route" | "pit_Resource" | "pit_Item";
-	RouteSequence?: number;
+	StageId?: number;
 }
 /*
  * These should be output as:
@@ -144,7 +144,7 @@ function run(source: SourceItem): Result | null {
 function formatLineNums(input: Result): Result {
 	const [firstStage, firstResource, ...restStages] = input.stages;
 	const items = input.items;
-	let routeSequence = 1;
+	let stageId = 1;
 
 	const result: Result = {
 		items: [],
@@ -154,26 +154,26 @@ function formatLineNums(input: Result): Result {
 	if (firstStage) {
 		result.stages.push({
 			...firstStage,
-			RouteSequence: routeSequence,
+			StageId: stageId,
 		});
 	}
 	if (firstResource) {
 		result.stages.push({
 			...firstResource,
-			RouteSequence: routeSequence,
+			StageId: stageId,
 		});
 	}
 	for (const item of items) {
 		result.items.push({
 			...item,
-			RouteSequence: routeSequence,
+			StageId: stageId,
 		});
 	}
 	for (const resource of restStages) {
-		if (resource.ItemType == "Route") routeSequence++; // the rest is a part of the next stage
+		if (resource.ItemType == "Route") stageId++; // the rest is a part of the next stage
 		result.stages.push({
 			...resource,
-			RouteSequence: routeSequence,
+			StageId: stageId,
 		});
 	}
 	return result;
