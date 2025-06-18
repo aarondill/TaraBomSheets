@@ -24,6 +24,7 @@ interface LineItem {
  * stages[n][1]
  */
 export interface Result {
+	ParentKey: string; // PN#, TreeCode, or ParentKey
 	Warnings: string[];
 	items: Item[];
 	stages: (Resource | RouteStage)[];
@@ -138,6 +139,7 @@ function run(source: SourceItem): Result | null {
 	const warnings: string[] = [];
 	const stages = getResourcesAndStages(source, isAssembly, warnings);
 	return {
+		ParentKey: source["PN#"],
 		Warnings: warnings,
 		items,
 		stages,
@@ -155,6 +157,7 @@ function formatStageIds(input: Result): Result {
 	let StageId = 1;
 
 	const result: Result = {
+		...input,
 		items: [],
 		stages: [],
 		Warnings: input.Warnings,
@@ -181,13 +184,11 @@ const resultByPN = new Map<string, Result>();
 for (const source of data.allItems) {
 	const result = run(source);
 	if (result === null) continue;
-	resultByPN.set(source["PN#"], result);
-	if (result.Warnings.length > 0) {
-		console.warn("Warnings for " + source["PN#"] + ":");
-		for (const warning of result.Warnings) {
-			console.warn("       " + warning);
-		}
+	if (resultByPN.has(result.ParentKey)) {
+		console.error("Duplicate ParentKey " + result.ParentKey + "! Ignoring.");
+		continue;
 	}
+	resultByPN.set(source["PN#"], result);
 }
 
 const ittMissing = data.ittItems
@@ -198,6 +199,7 @@ const ittMissing = data.ittItems
 for (const item of ittMissing) {
 	if (!resultByPN.has(item.ParentKey))
 		resultByPN.set(item.ParentKey, {
+			ParentKey: item.ParentKey,
 			items: [],
 			stages: [],
 			Warnings: [`ParentKey not in production items`],
@@ -206,4 +208,12 @@ for (const item of ittMissing) {
 }
 
 const results = Array.from(resultByPN.values().map(formatStageIds));
+for (const result of results) {
+	if (result.Warnings.length > 0) {
+		console.warn("Warnings for " + result.ParentKey + ":");
+		for (const warning of result.Warnings) {
+			console.warn("       " + warning);
+		}
+	}
+}
 await outputResults(results);
