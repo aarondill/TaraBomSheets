@@ -87,9 +87,10 @@ export async function getData(): Promise<Data> {
 	return { allItems, routeStagesAndResources, ittItems, routeStagesNumbers };
 }
 
-export async function outputResults(result: Result[]): Promise<void> {
+export async function outputResults(results: Result[]): Promise<void> {
 	const bom = path.join("output", "bom.csv");
 	const routeStages = path.join("output", "route-stages.csv");
+	const treeCodes = path.join("output", "tree-codes.csv");
 	await fs.mkdir(path.dirname(bom), { recursive: true });
 
 	const TYPE_NUMS = {
@@ -97,12 +98,24 @@ export async function outputResults(result: Result[]): Promise<void> {
 		pit_Resource: 290,
 		Route: undefined,
 	};
+
 	await Promise.all([
+		writeCsv(
+			treeCodes,
+			async write => {
+				const parentKeys = new Set<string>();
+				for (const result of results) parentKeys.add(result.ParentKey);
+				for (const ParentKey of parentKeys) {
+					write({ ParentKey, TreeType: "iProductionTree", Quantity: 1 });
+				}
+			},
+			["ParentKey", "TreeType", "Quantity"]
+		),
 		writeCsv(
 			bom,
 			async write => {
 				// write the BOM and resources
-				for (const lineItem of result) {
+				for (const lineItem of results) {
 					let lineNum = 0;
 					const Warnings = lineItem.Warnings.join("; ");
 					const [firstRoute, firstResource, ...restStages] = lineItem.stages;
@@ -153,7 +166,7 @@ export async function outputResults(result: Result[]): Promise<void> {
 			routeStages,
 			async write => {
 				// write the route stages
-				for (const lineItem of result) {
+				for (const lineItem of results) {
 					let lineNum = 0;
 					const Warnings = lineItem.Warnings.join("; ");
 					for (const stage of lineItem.stages) {
