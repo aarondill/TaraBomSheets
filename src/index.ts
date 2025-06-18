@@ -57,13 +57,16 @@ function getItems(itemInfo: SourceItem): Item[] {
 	const items = data.ittItems.filter(
 		item => item.ParentKey === itemInfo["PN#"]
 	);
-	return items.map(item => ({
-		Quantity: item.Quantity,
-		ParentKey: item.ParentKey,
-		ItemCode: item.ItemCode,
+	return items.map(constructItem);
+}
+function constructItem(itemInfo: (typeof data.ittItems)[number]): Item {
+	return {
+		Quantity: itemInfo.Quantity,
+		ParentKey: itemInfo.ParentKey,
+		ItemCode: itemInfo.ItemCode,
 		Warehouse: "040",
 		ItemType: "pit_Item",
-	}));
+	};
 }
 
 function getResourcesAndStages(
@@ -143,11 +146,9 @@ function run(source: SourceItem): Result | null {
 
 function formatStageIds(input: Result): Result {
 	const [firstStage, firstResource, ...restStages] = input.stages;
-	if (!firstStage && !firstResource) {
-		const newItems = input.items.map(
-			item => ({ ...item, StageId: "" }) as const
-		);
-		return { items: newItems, stages: [], Warnings: input.Warnings };
+	if (!firstStage) {
+		const items = input.items.map(item => ({ ...item, StageId: "" }) as const);
+		return { ...input, items };
 	}
 
 	const items = input.items;
@@ -175,12 +176,12 @@ function formatStageIds(input: Result): Result {
 }
 
 const data = await getData();
-const results: Result[] = [];
+const resultByPN = new Map<string, Result>();
 
 for (const source of data.allItems) {
 	const result = run(source);
 	if (result === null) continue;
-	results.push(formatStageIds(result));
+	resultByPN.set(source["PN#"], result);
 	if (result.Warnings.length > 0) {
 		console.warn("Warnings for " + source["PN#"] + ":");
 		for (const warning of result.Warnings) {
@@ -188,4 +189,21 @@ for (const source of data.allItems) {
 		}
 	}
 }
+
+const ittMissing = data.ittItems
+	.filter(
+		item => !data.allItems.some(source => source["PN#"] === item.ParentKey)
+	)
+	.map(constructItem);
+for (const item of ittMissing) {
+	if (!resultByPN.has(item.ParentKey))
+		resultByPN.set(item.ParentKey, {
+			items: [],
+			stages: [],
+			Warnings: [`ParentKey not in production items`],
+		});
+	resultByPN.get(item.ParentKey)!.items.push(item);
+}
+
+const results = Array.from(resultByPN.values().map(formatStageIds));
 await outputResults(results);
