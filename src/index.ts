@@ -138,6 +138,7 @@ function run(source: SourceItem): Result | null {
 	const isAssembly = probablyIsAssembly(source, items);
 	const warnings: string[] = [];
 	const stages = getResourcesAndStages(source, isAssembly, warnings);
+	if (items.length === 0 && stages.length === 0) return null;
 	return {
 		ParentKey: source["PN#"],
 		Warnings: warnings,
