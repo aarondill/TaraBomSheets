@@ -1,8 +1,9 @@
 # Created by https://www.toptal.com/developers/gitignore/api/backup,firebase,git,vercel,visualstudiocode,dotenv,nextjs,yarn,node
 # Edit at https://www.toptal.com/developers/gitignore?templates=backup,firebase,git,vercel,visualstudiocode,dotenv,nextjs,yarn,node
 
-/bun.lock
+data/*.csv
 output/
+/bun.lock
 
 ### Backup ###
 *.bak
